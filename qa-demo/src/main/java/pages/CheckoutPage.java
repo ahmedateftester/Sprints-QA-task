@@ -1,48 +1,65 @@
 package pages;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+
+import java.time.Duration;
+import java.util.List;
 
 public class CheckoutPage {
+
     WebDriver driver;
+    WebDriverWait wait;
 
     public CheckoutPage(WebDriver driver) {
         this.driver = driver;
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(20));
     }
 
-    By proceedToCheckoutBtn = By.cssSelector("a[href*='checkout']");
-    By emailField = By.id("customer-email");
-    By firstName = By.name("firstname");
-    By lastName = By.name("lastname");
-    By street = By.name("street[0]");
-    By city = By.name("city");
-    By postcode = By.name("postcode");
-    By phone = By.name("telephone");
-    By country = By.name("country_id");
-    By region = By.name("region_id");
-    By continueBtn = By.cssSelector("button.continue");
+    public void fillShippingInfo() throws InterruptedException {
+        // Step 1: Email
+        WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("customer-email")));
+        emailField.clear();
+        emailField.sendKeys("guest@example.com");
 
-    public void proceedToCheckout() {
-        driver.findElement(proceedToCheckoutBtn).click();
-    }
+        // Step 2: First and Last Name
+        driver.findElement(By.name("firstname")).sendKeys("Ahmed");
+        driver.findElement(By.name("lastname")).sendKeys("Tester");
 
-    public void fillShippingInfo() {
-        driver.findElement(emailField).sendKeys("testuser@mail.com");
-        driver.findElement(firstName).sendKeys("Test");
-        driver.findElement(lastName).sendKeys("User");
-        driver.findElement(street).sendKeys("123 Test St");
-        driver.findElement(city).sendKeys("Cairo");
-        driver.findElement(postcode).sendKeys("11311");
-        driver.findElement(phone).sendKeys("01012345678");
+        // Step 3: Address, City, Postcode, Phone
+        driver.findElement(By.name("street[0]")).sendKeys("123 Test Street");
+        driver.findElement(By.name("city")).sendKeys("Cairo");
+        driver.findElement(By.name("postcode")).sendKeys("12345");
+        driver.findElement(By.name("telephone")).sendKeys("01012345678");
 
-        Select countrySelect = new Select(driver.findElement(country));
-        countrySelect.selectByVisibleText("Egypt");
+        // Step 4: Country
+        Select countryDropdown = new Select(driver.findElement(By.name("country_id")));
+        countryDropdown.selectByVisibleText("Egypt");
 
-        Select regionSelect = new Select(driver.findElement(region));
-        regionSelect.selectByIndex(1); // أي محافظة
+        // Step 5: State/Region (if available)
+        try {
+            Select stateDropdown = new Select(driver.findElement(By.name("region_id")));
+            stateDropdown.selectByIndex(1);
+        } catch (NoSuchElementException e) {
+            System.out.println("No state dropdown found, skipping...");
+        }
 
-        driver.findElement(continueBtn).click();
+        // Step 6: اختر طريقة الشحن "Best Way"
+        WebElement bestWayRadio = wait.until(
+            ExpectedConditions.elementToBeClickable(By.cssSelector("input[type='radio'][value='flatrate_flatrate']"))
+        );
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", bestWayRadio);
+        bestWayRadio.click();
+
+        // Step 7: اضغط على Next
+        WebElement nextButton = wait.until(
+            ExpectedConditions.elementToBeClickable(By.cssSelector("button.continue"))
+        );
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", nextButton);
+        nextButton.click();
+
+        Thread.sleep(2000); // انتظار بعد الضغط
     }
 }

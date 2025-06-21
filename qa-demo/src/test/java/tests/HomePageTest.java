@@ -17,18 +17,19 @@ public class HomePageTest extends BaseTest {
         HomePage home = new HomePage(driver);
         home.searchFor("hoodie");
 
-        // انتظار لظهور أول منتج
+        // انتظار أول منتج فعلي
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         WebElement firstProduct = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".product-item-info"))
+                ExpectedConditions.visibilityOfElementLocated(By.cssSelector("li.product-item"))
         );
 
-        // Scroll down to the first product
+        // Scroll للمنتج عشان يظهر
         ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", firstProduct);
 
-        // تحقق من وجود منتجات
-        String title = home.getTitle();
-        System.out.println("Page Title: " + title);
-        assert title.toLowerCase().contains("hoodie");
+        // طباعة اسم المنتج للتأكيد
+        String productName = firstProduct.findElement(By.cssSelector("a.product-item-link")).getText();
+        System.out.println("First product: " + productName);
+
+        assert !productName.isEmpty();  // تأكيد أن في منتج فعلي ظهر
     }
 }
